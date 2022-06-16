@@ -195,8 +195,7 @@ bind = function(config, autoLoad){
 		iframe = tenantList[cacheKeyName];
 
 		if(iframe){
-			// iframe.set(_config, iframe.open);
-			iframe.open(_config);
+			iframe.open();
 		}
 		else{
 			utils.isMobile && loading.show();

@@ -340,25 +340,6 @@ export default function Video() {
         if (config.switch.skipWaitingPage) {
             handleStart()
         }
-        
-        //
-        getToHost.listen(msg => {
-            var event = msg.event;
-		    var data = msg.data;
-
-            if(msg.to !== getToHost.to){
-                return;
-            }
-
-            switch(event) {
-                case 'openZhy':
-                    console.log(1111, data)
-                    break;
-                case 'showChat':
-                    console.log(1111, data)
-                    break;
-            }
-        }, ['down2Im'])
     }, [])
 
     var waitTitle = step === 'invite' ? intl.get('inviteTitle') : intl.get('ptitle')
