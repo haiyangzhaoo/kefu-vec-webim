@@ -350,7 +350,7 @@ Iframe.prototype.set = function(config, callback){
 
 	utils.toggleClass(this.iframe, "easemobim-hide", this.config.hide);
 
-	this.iframe.src = config.path + '/index.html?configId=' + this.config.configId + '&iframeId=' + this.iframe.id + '&lang=' + this.config.lang;
+	this.iframe.src = config.path + '/index.html?configId=' + this.config.configId + '&iframeId=' + this.iframe.id + '&lang=' + this.config.lang + '&hideDefaultButton=' + this.config.hide;
 	// this.shadow && (this.shadow.style.backgroundColor = shadowBackgroundColor);
 
 	this.ready = callback;
@@ -411,8 +411,8 @@ Iframe.prototype.close = function(){
 	}
 
 	utils.addClass(this.iframe, "easemobim-minimized");
-	utils.addClass(this.iframe, "easemobim-hide");
-	// utils.toggleClass(this.iframe, "easemobim-hide", this.config.hide);
+	// utils.addClass(this.iframe, "easemobim-hide");
+	utils.toggleClass(this.iframe, "easemobim-hide", this.config.hide); // this.config.hide 去除自定义按钮
 
 	this.down2Im && this.down2Im.send({ event: _const.EVENTS.CLOSE });
 	return this;

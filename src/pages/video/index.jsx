@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { Wrapper, WaitWrapper, WaitTitle, WaitAgent, WaitAgentLogo, WaitAgentDesc, WaitTip, WaitOpera, CurrentWrapper, CurrentTitle, CurrentFooter, CurrentBodySelf, CurrentBodyMicro, CurrentBodyMore, TopVideoBox, CurrentVideo, InviteOpera } from './style'
+import { Wrapper, WaitWrapper, WaitTitle, WaitAgent, WaitAgentLogo, WaitAgentDesc, WaitTip, WaitOpera, CurrentWrapper, CurrentTitle, CurrentFooter, CurrentBodySelf, CurrentBodyMicro, CurrentBodyMore, TopVideoBox, CurrentVideo, InviteOpera, DefaultConnect } from './style'
 import TimeControl from './comps/TimeControl'
 import videoChatAgora from '@/tools/hxVideo'
 import logo from '@/assets/img/qiye.png'
@@ -12,12 +12,14 @@ import MediaPlayer from './comps/MediaPlayer/MediaPlayer'
 import getToHost from '@/common/transfer'
 import intl from 'react-intl-universal'
 import utils from '@/tools/utils'
+import queryString from 'query-string'
 
 import ws from '@/ws'
 
 var serviceAgora = null
 var top = window.top === window.self // false 在iframe里面 true不在
 var config = commonConfig.getConfig()
+var hideDefaultButton = queryString.parse(location.search).hideDefaultButton || ''
 
 export default function Video() {
     const [step, setStep] = useState(config.switch.skipWaitingPage ? 'wait' : 'start') // start: 发起和重新发起 wait等待接听中 current 视频中 off：挂断 invite:客服邀请
@@ -283,6 +285,11 @@ export default function Video() {
         handleClose()
     }
 
+    // 默认联系客服
+    const handleConnect = () => {
+        console.log(1111, commonConfig.getConfig())
+    }
+
     useEffect(() => {
         if (!serviceAgora?.client) return;
     
@@ -334,98 +341,103 @@ export default function Video() {
     var waitTitle = step === 'invite' ? intl.get('inviteTitle') : intl.get('ptitle')
 
     return (
-        <Wrapper role={step} top={top} className={utils.isMobile ? 'full_screen' : null}>
-            {!top && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
-            <CurrentWrapper className={step === 'current' ? '' : 'hide'}>
-                <CurrentTitle>
-                    <span>{time  ? intl.get('calling') : intl.get('waitCalling')}</span>
-                    {time ? <TimeControl /> : ''}
-                </CurrentTitle>
-                <CurrentBodyMore>
-                    <TopVideoBox className='top'>
-                        {
-                            step === 'current' && !!currentChooseUser && remoteUsers
-                            .concat(localUser || [])
-                            .filter(({ uid }) => uid !== currentChooseUser?.uid)
-                            .map((user) => {
-                                let { isLocal = false, uid, videoTrack, hasAudio, audioTrack } = user;
-
-                            return <MediaPlayer
-                                bindClick={() => setCurrentChooseUser(user)}
-                                key={uid} 
-                                isLocal={isLocal}
-                                name={idNameMap[uid] || ''} 
-                                hasAudio={isLocal ? sound : hasAudio}
-                                audioTrack={audioTrack} 
-                                videoTrack={videoTrack} 
-                                />
-                            })
-                        }
-                    </TopVideoBox>
-                    <CurrentVideo>
-                        {step === 'current' && currentChooseUser && (<CurrentBodySelf>
-                            <div className='info'>
-                                <CurrentBodyMicro className='self'>
-                                    <span className={(currentChooseUser.isLocal ? sound : currentChooseUser.hasAudio) ? 'icon-microphone' : 'icon-microphone-close'}></span>
-                                </CurrentBodyMicro>
-                                <span>{
-                                    currentChooseUser ?  currentChooseUser.isLocal 
-                                    ? intl.get('me') 
-                                    : `${intl.get('agent')}-${idNameMap[currentChooseUser.uid] || ''}`  : ''    
-                                }</span>
-                            </div>
-                            <div id='visitor_video' ref={videoRef}></div>
-                            <span className='icon-smile'></span>
-                        </CurrentBodySelf>)}
-                    </CurrentVideo>
-                </CurrentBodyMore>
-                <CurrentFooter top={top}>
-                    <div onClick={handleSound}><span className={sound ? 'icon-sound' : 'icon-sound-close'}></span></div>
-                    <div onClick={handleFace}><span className={face ? 'icon-face' : 'icon-face-close'}></span></div>
-                    <div onClick={handleClose}><span className='icon-off'></span></div>
-                </CurrentFooter>
-            </CurrentWrapper>
-            {/* 等待页面 */}
-            <WaitWrapper className={step !== 'current' ? '' : 'hide'}>
-                <WaitTitle>
-                    <h2>{waitTitle}</h2>
-                </WaitTitle>
-                <WaitAgent>
-                    {step === 'invite' && <TimeControl />}
-                    <WaitAgentLogo>
-                        <img src={compInfo.avatar ? compInfo.avatar : logo}  />
-                    </WaitAgentLogo>
-                    <WaitAgentDesc>
-                        {compInfo.name ? compInfo.name : ''}
-                    </WaitAgentDesc>
-                </WaitAgent>
-                <WaitTip>{tip}</WaitTip>
-                {step === 'invite' ? (
-                    <InviteOpera>
-                        <div className='recive'>
-                            <div>
-                                <span className='icon-answer' onClick={callbackRecived}></span>
-                            </div>
-                            <div>{intl.get('reciveVideo')}</div>
-                        </div>
-                        <div className='hung'>
-                            <div>
-                                <span className='icon-off' onClick={callbackReject}></span>
-                            </div>
-                            <div>{intl.get('closeVideo')}</div>
-                        </div>
-                    </InviteOpera>
-                ) : (
-                    <WaitOpera role={step} ref={stepRef}>
-                        <div>
+        <React.Fragment>
+            <Wrapper role={step} top={top} className={`${utils.isMobile ? 'full_screen' : null} hide`}>
+                {!top && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
+                <CurrentWrapper className={step === 'current' ? '' : 'hide'}>
+                    <CurrentTitle>
+                        <span>{time  ? intl.get('calling') : intl.get('waitCalling')}</span>
+                        {time ? <TimeControl /> : ''}
+                    </CurrentTitle>
+                    <CurrentBodyMore>
+                        <TopVideoBox className='top'>
                             {
-                                step === 'start' ? <span onClick={handleStart} className='icon-answer'></span> : <span onClick={handleClose} className='icon-off'></span>
+                                step === 'current' && !!currentChooseUser && remoteUsers
+                                .concat(localUser || [])
+                                .filter(({ uid }) => uid !== currentChooseUser?.uid)
+                                .map((user) => {
+                                    let { isLocal = false, uid, videoTrack, hasAudio, audioTrack } = user;
+
+                                return <MediaPlayer
+                                    bindClick={() => setCurrentChooseUser(user)}
+                                    key={uid} 
+                                    isLocal={isLocal}
+                                    name={idNameMap[uid] || ''} 
+                                    hasAudio={isLocal ? sound : hasAudio}
+                                    audioTrack={audioTrack} 
+                                    videoTrack={videoTrack} 
+                                    />
+                                })
                             }
-                        </div>
-                        <div>{desc}</div>
-                    </WaitOpera>
-                )}
-            </WaitWrapper>
-        </Wrapper>
+                        </TopVideoBox>
+                        <CurrentVideo>
+                            {step === 'current' && currentChooseUser && (<CurrentBodySelf>
+                                <div className='info'>
+                                    <CurrentBodyMicro className='self'>
+                                        <span className={(currentChooseUser.isLocal ? sound : currentChooseUser.hasAudio) ? 'icon-microphone' : 'icon-microphone-close'}></span>
+                                    </CurrentBodyMicro>
+                                    <span>{
+                                        currentChooseUser ?  currentChooseUser.isLocal 
+                                        ? intl.get('me') 
+                                        : `${intl.get('agent')}-${idNameMap[currentChooseUser.uid] || ''}`  : ''    
+                                    }</span>
+                                </div>
+                                <div id='visitor_video' ref={videoRef}></div>
+                                <span className='icon-smile'></span>
+                            </CurrentBodySelf>)}
+                        </CurrentVideo>
+                    </CurrentBodyMore>
+                    <CurrentFooter top={top}>
+                        <div onClick={handleSound}><span className={sound ? 'icon-sound' : 'icon-sound-close'}></span></div>
+                        <div onClick={handleFace}><span className={face ? 'icon-face' : 'icon-face-close'}></span></div>
+                        <div onClick={handleClose}><span className='icon-off'></span></div>
+                    </CurrentFooter>
+                </CurrentWrapper>
+                {/* 等待页面 */}
+                <WaitWrapper className={step !== 'current' ? '' : 'hide'}>
+                    <WaitTitle>
+                        <h2>{waitTitle}</h2>
+                    </WaitTitle>
+                    <WaitAgent>
+                        {step === 'invite' && <TimeControl />}
+                        <WaitAgentLogo>
+                            <img src={compInfo.avatar ? compInfo.avatar : logo}  />
+                        </WaitAgentLogo>
+                        <WaitAgentDesc>
+                            {compInfo.name ? compInfo.name : ''}
+                        </WaitAgentDesc>
+                    </WaitAgent>
+                    <WaitTip>{tip}</WaitTip>
+                    {step === 'invite' ? (
+                        <InviteOpera>
+                            <div className='recive'>
+                                <div>
+                                    <span className='icon-answer' onClick={callbackRecived}></span>
+                                </div>
+                                <div>{intl.get('reciveVideo')}</div>
+                            </div>
+                            <div className='hung'>
+                                <div>
+                                    <span className='icon-off' onClick={callbackReject}></span>
+                                </div>
+                                <div>{intl.get('closeVideo')}</div>
+                            </div>
+                        </InviteOpera>
+                    ) : (
+                        <WaitOpera role={step} ref={stepRef}>
+                            <div>
+                                {
+                                    step === 'start' ? <span onClick={handleStart} className='icon-answer'></span> : <span onClick={handleClose} className='icon-off'></span>
+                                }
+                            </div>
+                            <div>{desc}</div>
+                        </WaitOpera>
+                    )}
+                </WaitWrapper>
+            </Wrapper>
+            <DefaultConnect onClick={handleConnect} className={hideDefaultButton ? 'hide' : ''}>
+                <span className='icon-logo'>联系客服</span>
+            </DefaultConnect>
+        </React.Fragment>
     )
 }

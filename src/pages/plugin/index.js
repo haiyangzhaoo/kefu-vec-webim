@@ -285,7 +285,7 @@ window.easemobvec.bind = function(config){
 };
 
 // auto load
-// bind({}, true);
+bind({}, true);
 
 
 // support cmd & amd
