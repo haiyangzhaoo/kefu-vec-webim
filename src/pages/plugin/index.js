@@ -2,6 +2,7 @@ require("underscore");
 var utils = require("./common/utils");
 var loading = require("./loading");
 var Iframe = require("./iframe");
+var configB = require('./common/config')
 var tenantList = {};
 var DEFAULT_CONFIG;
 
@@ -192,9 +193,10 @@ bind = function(config, autoLoad){
 		}
 
 		iframe = tenantList[cacheKeyName];
-		
+
 		if(iframe){
-			iframe.open();
+			// iframe.set(_config, iframe.open);
+			iframe.open(_config);
 		}
 		else{
 			utils.isMobile && loading.show();

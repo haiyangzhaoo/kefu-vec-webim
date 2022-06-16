@@ -19,7 +19,7 @@ import ws from '@/ws'
 var serviceAgora = null
 var top = window.top === window.self // false 在iframe里面 true不在
 var config = commonConfig.getConfig()
-var hideDefaultButton = queryString.parse(location.search).hideDefaultButton || ''
+// var hideDefaultButton = queryString.parse(location.search).hideDefaultButton || false
 
 export default function Video() {
     const [step, setStep] = useState(config.switch.skipWaitingPage ? 'wait' : 'start') // start: 发起和重新发起 wait等待接听中 current 视频中 off：挂断 invite:客服邀请
@@ -41,6 +41,8 @@ export default function Video() {
     const [idNameMap, setIdNameMap] = useState({})
     const [agents, setAgents] = useState({})
     const [ssid, setSsid] = useState('')
+    const [show, setShow] = useState(top ? true : false)
+    const [hideDefaultButton, setHideDefaultButton] = useState(queryString.parse(location.search).hideDefaultButton || false)
 
     const videoRef = useRef();
     const stepRef = useRef()
@@ -246,6 +248,7 @@ export default function Video() {
     // iframe最小化
     const handleMini = () => {
         getToHost.send({event: 'closeChat'})
+        setShow(false)
     }
 
     // 坐席回呼
@@ -287,7 +290,8 @@ export default function Video() {
 
     // 默认联系客服
     const handleConnect = () => {
-        console.log(1111, commonConfig.getConfig())
+        getToHost.send({event: 'showChat'})
+        setShow(true)
     }
 
     useEffect(() => {
@@ -336,13 +340,32 @@ export default function Video() {
         if (config.switch.skipWaitingPage) {
             handleStart()
         }
+        
+        //
+        getToHost.listen(msg => {
+            var event = msg.event;
+		    var data = msg.data;
+
+            if(msg.to !== getToHost.to){
+                return;
+            }
+
+            switch(event) {
+                case 'openZhy':
+                    console.log(1111, data)
+                    break;
+                case 'showChat':
+                    console.log(1111, data)
+                    break;
+            }
+        }, ['down2Im'])
     }, [])
 
     var waitTitle = step === 'invite' ? intl.get('inviteTitle') : intl.get('ptitle')
 
     return (
         <React.Fragment>
-            <Wrapper role={step} top={top} className={`${utils.isMobile ? 'full_screen' : null} hide`}>
+            <Wrapper role={step} top={top} className={`${utils.isMobile ? 'full_screen' : ''} ${top || show || hideDefaultButton ? '' : 'hide'}`}>
                 {!top && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
                 <CurrentWrapper className={step === 'current' ? '' : 'hide'}>
                     <CurrentTitle>
@@ -435,7 +458,7 @@ export default function Video() {
                     )}
                 </WaitWrapper>
             </Wrapper>
-            <DefaultConnect onClick={handleConnect} className={hideDefaultButton ? 'hide' : ''}>
+            <DefaultConnect onClick={handleConnect} className={hideDefaultButton || top || show ? 'hide' : ''}>
                 <span className='icon-logo'>联系客服</span>
             </DefaultConnect>
         </React.Fragment>

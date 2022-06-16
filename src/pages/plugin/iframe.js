@@ -377,7 +377,7 @@ Iframe.prototype._updatePosition = function(newData){
 	}
 };
 
-Iframe.prototype.open = function(){
+Iframe.prototype.open = function(config){
 	var iframe = this.iframe;
 	inviteBox && inviteBox.clearInvitation();
 	isOpened = true;
