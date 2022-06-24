@@ -424,8 +424,7 @@ export default function Video() {
         setStep('enquiry')
     }
 
-    const handleEnquiry = ext => {
-        ws.cancelVideo(null, {ext})
+    const handleEnquiry = () => {
         setEnquiryTimer(setTimeout(() => {
             setStep('start')
             setDesc(intl.get('reStartVideo'))
