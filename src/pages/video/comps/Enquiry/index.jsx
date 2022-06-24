@@ -82,7 +82,7 @@ export default function Enquiry(props) {
 
     return <div className="enquiry-container">
 		<div className="score-top">
-			<span>通话已结束</span>
+			<span>{intl.get('facevideo_end')}</span>
 		</div>
 		<div className="score-wrapper">
 			<div className="score-container">

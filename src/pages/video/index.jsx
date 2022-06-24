@@ -598,7 +598,7 @@ export default function Video() {
     return (
         <React.Fragment>
             <Wrapper role={step} top={top} className={`${utils.isMobile ? 'full_screen' : ''} ${top || show || hideDefaultButton ? '' : 'hide'}`}>
-                {!top && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
+                {!top && step !== 'enquiry' && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
                 <CurrentWrapper className={step === 'current' ? '' : 'hide'}>
                     <CurrentTitle>
                         <span>{time  ? intl.get('calling') : intl.get('waitCalling')}</span>
@@ -663,7 +663,7 @@ export default function Video() {
                         onOk={handleWhiteOk}
                         onCancel={handleWhiteCancel}
                     >
-                        确认关闭互动白板吗？
+                        {intl.get('close_white_tips')}
                     </VecModal>
                 </CurrentWrapper>
                 {/* 等待页面 */}
@@ -710,7 +710,7 @@ export default function Video() {
                 {step === 'enquiry' && <Enquiry handleSendWs={handleEnquiry} {...enquiryData} />}
             </Wrapper>
             <DefaultConnect onClick={handleConnect} className={hideDefaultButton || top || show ? 'hide' : ''}>
-                <span className='icon-logo'>联系客服</span>
+                <span className='icon-logo'>{intl.get('contact_agent')}</span>
             </DefaultConnect>
         </React.Fragment>
     )
