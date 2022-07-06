@@ -5,6 +5,11 @@ import '@/ws/webim.config'
 import Loading from './components/Loading'
 import intl from 'react-intl-universal'
 import queryString from 'query-string'
+import {
+    HashRouter,
+    Routes,
+    Route,
+} from "react-router-dom"
 
 import ws from './ws'
 
@@ -27,10 +32,17 @@ const Video = React.lazy(async () => {
     return import('./pages/video')
 })
 
+const Reserve = React.lazy(() => import('./pages/reserve'))
+
 export default function App() {
     return <React.Fragment>
         <Suspense fallback={<Loading />}>
-            <Video />
+            <BrowserRouter>
+                <Routes>
+                    <Route path="/" element={<Video />} />
+                    <Route path="reserve" element={<Reserve />} />
+                </Routes>
+            </BrowserRouter>
         </Suspense>
     </React.Fragment>
 }
