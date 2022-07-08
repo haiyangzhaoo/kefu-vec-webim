@@ -263,8 +263,7 @@ function _ready(){
 			// 提交评价成功
 			me.callbackApi.onEvaluationsubmit();
 			break;
-		case 'path_ok':
-			console.log(999999, me.hashPathList)
+		case _const.EVENTS.IFRAMEHASHOK:
 			me.hashPathList.map(item => me.down2Im.send(item))
 			break;
 		default:
@@ -462,16 +461,16 @@ Iframe.prototype.hideDefaultBtn = function(){
 
 Iframe.prototype.reserve = function() {
 	if (this.down2Im) {
-		this.down2Im.send({event: 'path_reserve', data: {}})
+		this.down2Im.send({event: _const.EVENTS.HASH_RESERVE, data: {}})
 	} else {
-		this.hashPathList.push({event: 'path_reserve', data: {}})
+		this.hashPathList.push({event: _const.EVENTS.HASH_RESERVE, data: {}})
 	}
 }
 Iframe.prototype.reserveRecord = function() {
 	if (this.down2Im) {
-		this.down2Im.send({event: 'path_reserveRecord', data: {}})
+		this.down2Im.send({event: _const.EVENTS.HASH_RESERVERECORD, data: {}})
 	} else {
-		this.hashPathList.push({event: 'path_reserveRecord', data: {}})
+		this.hashPathList.push({event: _const.EVENTS.HASH_RESERVERECORD, data: {}})
 	}
 }
 module.exports = Iframe;

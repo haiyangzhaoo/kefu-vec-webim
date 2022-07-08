@@ -51,3 +51,8 @@ export const SYSTEM_AGENT_CANCALCALLBACK = 'agent_cancel_callback'
 export const SYSTEM_ENQUIRY_INVITE = 'enquiry_invite'
 export const SYSTEM_RTCSESSION_INFO = 'rtcSession_info'
 
+// postMessage
+export const POSTMESSAGE_IFRAME_SUCCESS = 'hash_path_ok'
+export const POSTMESSAGE_HASH_RESERVE = 'hash_reserve'
+export const POSTMESSAGE_HASH_RESERVERECORD = 'hash_reserveRecord'
+

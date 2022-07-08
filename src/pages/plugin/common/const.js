@@ -160,7 +160,10 @@ module.exports = {
 		INVITATION_INIT: "invitation_init",
 		REOPEN: "reopen",
 		HIDE_DEFAULT_BTN:"hideDefaultBtn",
-		EVALUATIONSUBMIT: "evaluation_submit"
+		EVALUATIONSUBMIT: "evaluation_submit",
+		IFRAMEHASHOK: 'hash_path_ok',
+		HASH_RESERVE: 'hash_reserve',
+		HASH_RESERVERECORD: 'hash_reserveRecord'
 	},
 
 	ERROR_MSG: {

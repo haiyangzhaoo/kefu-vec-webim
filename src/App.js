@@ -5,13 +5,10 @@ import '@/ws/webim.config'
 import Loading from './components/Loading'
 import intl from 'react-intl-universal'
 import queryString from 'query-string'
-import {
-    HashRouter,
-    Routes,
-    Route,
-} from "react-router-dom"
+import { HashRouter } from "react-router-dom"
 import Router from './router'
 import transfer from '@/common/transfer'
+import { POSTMESSAGE_IFRAME_SUCCESS, POSTMESSAGE_HASH_RESERVE, POSTMESSAGE_HASH_RESERVERECORD } from '@/assets/constants/events'
 
 // import ws from './ws'
 
@@ -44,7 +41,7 @@ export default function App() {
     const [hashPath, setHashPath] = useState('')
 
     useLayoutEffect(() => {
-        transfer.send({event: 'path_ok'})
+        transfer.send({event: POSTMESSAGE_IFRAME_SUCCESS})
     }, [])
 
     useEffect(() => {
@@ -52,9 +49,9 @@ export default function App() {
             const {event} = msg
 
             switch(event) {
-                case 'path_reserve':
-                case 'path_reserveRecord':
-                    setHashPath(event)
+                case POSTMESSAGE_HASH_RESERVE:
+                case POSTMESSAGE_HASH_RESERVERECORD:
+                    setHashPath(event.split('_')[1])
                     break;
                 default:
                     break;

@@ -20,52 +20,53 @@
 		function reserveRecord() {
 			window.easemobvec.reserveRecord('74f5576d-a4b8-418e-bf9c-3d9f707b9a6b')
 		}
-    function test() {
-      var configId = document.getElementsByName("configId")[0].value
-      // var tenantId = document.getElementsByName("tenantId")[0].value
-      if (!configId) {
-        alert('输入configId和tenantId')
-      } else {
-        window.easemobvec.bind({
-        // tenantId: tenantId,
-        hide: true,
-        initLanguage: 'en-US',
-        resources: true,
-        configId: configId,
-        onready: function(){ 
-          console.log("onready")
-          // sendCrmExt();
-        },
-        onclose: function(){
-          console.log("onclose")
-        },
-        onopen: function(){
-          console.log("onopen")
-        },
-        onEvaluationsubmit: function(){
-          console.log("onEvaluationsubmit")
-        },
-        onmessage: function(){
-          console.log("onmessage")
-        },
-        onsessionclosed: function(){
-          console.log("onsessionclosed")
-        },
-        onsessioncreat: function(){
-          console.log("oncreat")
-        }
-        // extMsg:{
-            //     cmd:{
-            //         updateVisitorInfoSrc:{
-            //             params:{
-            //                 uid: "cxn111111"
-            //             }
-            //         }
-            //     }
-            // },
-      });
-        }
-      }
+		function test() {
+		var configId = document.getElementsByName("configId")[0].value
+		// var tenantId = document.getElementsByName("tenantId")[0].value
+		if (!configId) {
+			alert('输入configId和tenantId')
+		} else {
+			window.easemobvec.bind({
+				// tenantId: tenantId,
+				hide: true,
+				initLanguage: 'en-US',
+				resources: true,
+				configId: configId,
+				zhy: 3344444,
+				onready: function(){ 
+				console.log("onready")
+				// sendCrmExt();
+				},
+				onclose: function(){
+				console.log("onclose")
+				},
+				onopen: function(){
+				console.log("onopen")
+				},
+				onEvaluationsubmit: function(){
+				console.log("onEvaluationsubmit")
+				},
+				onmessage: function(){
+				console.log("onmessage")
+				},
+				onsessionclosed: function(){
+				console.log("onsessionclosed")
+				},
+				onsessioncreat: function(){
+				console.log("oncreat")
+				}
+				// extMsg:{
+					//     cmd:{
+					//         updateVisitorInfoSrc:{
+					//             params:{
+					//                 uid: "cxn111111"
+					//             }
+					//         }
+					//     }
+					// },
+				});
+			}
+		}
     </script>
     <script src="easemobvec.js"></script>
     <!-- <script src="easemobvec.js?configId=74f5576d-a4b8-418e-bf9c-3d9f707b9a6b&initLanguage=en-US"></script> -->
