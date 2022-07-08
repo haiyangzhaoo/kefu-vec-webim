@@ -157,6 +157,9 @@ bind = function(config, autoLoad){
 			// && !utils.isMobile
 		){
 			cacheKeyName = _config.configId || (_config.tenantId + (_config.emgroup || ""));
+			if (_config.hashPath) {
+				cacheKeyName += `-${_config.hashPath}`
+			}
 			if(!_config.user.username){
 				// 从cookie里取用户名
 				// keyName = [to + ] tenantId [ + emgroup]
@@ -181,6 +184,9 @@ bind = function(config, autoLoad){
 		config.emgroup = config.emgroup || easemobvec.config.emgroup || "";
 
 		cacheKeyName = config.configId || (config.tenantId + config.emgroup);
+		if (_config.hashPath) {
+			cacheKeyName += `-${_config.hashPath}`
+		}
 
 		for(i in tenantList){
 			if(Object.prototype.hasOwnProperty.call(tenantList, i)){
@@ -222,7 +228,7 @@ bind = function(config, autoLoad){
 		}
 	}
 
-
+	delete _config['hashPath']
 };
 
 // open api1: send custom extend message
@@ -280,13 +286,18 @@ easemobvec.setDefaultConfig = function(config){
 
 // 预约
 easemobvec.reserve = function(configId) {
-	!iframe && bind({configId, hide: true}, false)
-	iframe.reserve()
+	// 多iframe
+	bind({configId, hashPath: 'reserve', hide: true}, false)
+
+	// !iframe && bind({configId, hide: true}, false)
+	// iframe.reserve()
 }
 // 预约记录
 easemobvec.reserveRecord = function(configId) {
-	!iframe && bind({configId, hide: true}, false)
-	iframe.reserveRecord()
+	// 多iframe
+	bind({configId, hashPath: 'reserveRecord', hide: true}, false)
+	// !iframe && bind({configId, hide: true}, false)
+	// iframe.reserveRecord()
 }
 
 

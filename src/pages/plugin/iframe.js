@@ -362,9 +362,13 @@ Iframe.prototype.set = function(config, callback){
 	if (this.config.hide !== '') {
 		params.push({name: 'hideDefaultButton',value: this.config.hide})
 	}
-	this.iframe.src = config.path + '/index.html' + params.reduce((s, item) => {
+	var src = config.path + '/index.html' + params.reduce((s, item) => {
 		return s + '&' + item.name + '=' + item.value
 	}, '?')
+	if (this.config.hashPath) {
+		src += `#/${this.config.hashPath}`
+	}
+	this.iframe.src = src
 
 	// this.iframe.src = config.path + '/index.html?configId=' + this.config.configId + '&iframeId=' + this.iframe.id + '&lang=' + this.config.lang + '&hideDefaultButton=' + this.config.hide;
 	// this.shadow && (this.shadow.style.backgroundColor = shadowBackgroundColor);

@@ -1,10 +1,13 @@
 import React from "react"
-import intl from 'react-intl-universal'
+import getToHost from '@/common/transfer'
 
-function ReserveRecord() {
-    return <div>
-        <div>reserverecord-{intl.get('startVideo')}-哈哈</div>
-    </div>
+export default function ReserveRecord() {
+    const handleClose = () => {
+        getToHost.send({event: 'closeChat'})
+    }
+
+    return <>
+        <div>ReserveRecord</div>
+        <div onClick={handleClose}>关闭</div>
+    </>
 }
-
-export default ReserveRecord
