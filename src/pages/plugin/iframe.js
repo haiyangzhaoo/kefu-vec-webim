@@ -263,6 +263,10 @@ function _ready(){
 			// 提交评价成功
 			me.callbackApi.onEvaluationsubmit();
 			break;
+		case 'path_ok':
+			console.log(999999, me.hashPathList)
+			me.hashPathList.map(item => me.down2Im.send(item))
+			break;
 		default:
 			break;
 		}
@@ -326,6 +330,7 @@ function Iframe(config){
 	};
 	me.textMessageList = [];
 	me.extendMessageList = [];
+	me.hashPathList = []
 
 	Iframe.iframe = me;
 
@@ -455,4 +460,18 @@ Iframe.prototype.hideDefaultBtn = function(){
 	this.down2Im.send({ event: _const.EVENTS.HIDE_DEFAULT_BTN, data: {} });
 };
 
+Iframe.prototype.reserve = function() {
+	if (this.down2Im) {
+		this.down2Im.send({event: 'path_reserve', data: {}})
+	} else {
+		this.hashPathList.push({event: 'path_reserve', data: {}})
+	}
+}
+Iframe.prototype.reserveRecord = function() {
+	if (this.down2Im) {
+		this.down2Im.send({event: 'path_reserveRecord', data: {}})
+	} else {
+		this.hashPathList.push({event: 'path_reserveRecord', data: {}})
+	}
+}
 module.exports = Iframe;

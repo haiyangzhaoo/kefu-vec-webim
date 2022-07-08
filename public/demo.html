@@ -9,9 +9,17 @@
   <body>
     configId:<input type="text" name="configId" value="74f5576d-a4b8-418e-bf9c-3d9f707b9a6b" />
     <!-- tenantId:<input type="text" name="tenantId" value="29762" /> -->
-    <button onclick="test()">按钮</button>
+    <button onclick="test()">按钮</button><br />
+	<button onclick="reserve()">预约</button><br />
+	<button onclick="reserveRecord()">预约列表</button><br />
     <!--不支持提醒-->
     <script>
+		function reserve() {
+			window.easemobvec.reserve('74f5576d-a4b8-418e-bf9c-3d9f707b9a6b')
+		}
+		function reserveRecord() {
+			window.easemobvec.reserveRecord('74f5576d-a4b8-418e-bf9c-3d9f707b9a6b')
+		}
     function test() {
       var configId = document.getElementsByName("configId")[0].value
       // var tenantId = document.getElementsByName("tenantId")[0].value

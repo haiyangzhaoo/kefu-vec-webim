@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect, useState } from 'react'
 import '@/assets/css/icon.scss'
 import '@/assets/css/common.scss'
 import '@/ws/webim.config'
@@ -10,8 +10,10 @@ import {
     Routes,
     Route,
 } from "react-router-dom"
+import Router from './router'
+import transfer from '@/common/transfer'
 
-import ws from './ws'
+// import ws from './ws'
 
 var lang = queryString.parse(location.search).lang || 'zh-CN'
 
@@ -19,30 +21,56 @@ const locales = {
     "en-US": require('@/assets/locales/en-US').default,
     "zh-CN": require('@/assets/locales/zh-CN').default,
 }
-
-const Video = React.lazy(async () => {
-    await Promise.all([
-        ws.initConnection(),
-        intl.init({
-            currentLocale: lang,
-            locales
-        })
-    ])
-
-    return import('./pages/video')
+intl.init({
+    currentLocale: lang,
+    locales
 })
 
-const Reserve = React.lazy(() => import('./pages/reserve'))
+// const Video = React.lazy(async () => {
+//     await Promise.all([
+//         ws.initConnection(),
+//         intl.init({
+//             currentLocale: lang,
+//             locales
+//         })
+//     ])
+
+//     return import('./pages/video')
+// })
+
+// const Reserve = React.lazy(() => import('./pages/reserve'))
 
 export default function App() {
+    const [hashPath, setHashPath] = useState('')
+
+    useLayoutEffect(() => {
+        transfer.send({event: 'path_ok'})
+    }, [])
+
+    useEffect(() => {
+        transfer.listen(msg => {
+            const {event} = msg
+
+            switch(event) {
+                case 'path_reserve':
+                case 'path_reserveRecord':
+                    setHashPath(event)
+                    break;
+                default:
+                    break;
+            }
+        })
+    }, [])
+
     return <React.Fragment>
         <Suspense fallback={<Loading />}>
-            <BrowserRouter>
-                <Routes>
+            <HashRouter>
+                <Router path={hashPath} />
+                {/* <Routes>
                     <Route path="/" element={<Video />} />
                     <Route path="reserve" element={<Reserve />} />
-                </Routes>
-            </BrowserRouter>
+                </Routes> */}
+            </HashRouter>
         </Suspense>
     </React.Fragment>
 }

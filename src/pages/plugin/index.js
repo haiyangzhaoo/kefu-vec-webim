@@ -2,7 +2,6 @@ require("underscore");
 var utils = require("./common/utils");
 var loading = require("./loading");
 var Iframe = require("./iframe");
-var configB = require('./common/config')
 var tenantList = {};
 var DEFAULT_CONFIG;
 
@@ -278,6 +277,17 @@ easemobvec.setDefaultConfig = function(config){
 		config && iframe._updatePosition(config);
 	}
 };
+
+// 预约
+easemobvec.reserve = function(configId) {
+	!iframe && bind({configId, hide: true}, false)
+	iframe.reserve()
+}
+// 预约记录
+easemobvec.reserveRecord = function(configId) {
+	!iframe && bind({configId, hide: true}, false)
+	iframe.reserveRecord()
+}
 
 
 // user click
