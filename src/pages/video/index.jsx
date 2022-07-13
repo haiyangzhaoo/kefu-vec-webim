@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { Wrapper, DefaultConnect } from './style'
-
 import videoChatAgora from '@/tools/hxVideo'
 import commonConfig from '@/common/config'
 import event from '@/tools/event'
 import { getOfficalAccounts } from '@/assets/http/user'
-import { SYSTEM_VIDEO_TICKET_RECEIVED, SYSTEM_VIDEO_ARGO_END, SYSTEM_VIDEO_ARGO_REJECT, SYSTEM_VIDEO_CALLBACK_TICKET, SYSTEM_WHITE_BOARD_RECEIVED, SYSTEM_AGENT_CANCALCALLBACK, SYSTEM_ENQUIRY_INVITE, SYSTEM_VIDEO_CALLBACK } from '@/assets/constants/events'
+import { SYSTEM_VIDEO_TICKET_RECEIVED, SYSTEM_VIDEO_ARGO_END, SYSTEM_VIDEO_ARGO_REJECT, SYSTEM_VIDEO_CALLBACK_TICKET, SYSTEM_AGENT_CANCALCALLBACK, SYSTEM_ENQUIRY_INVITE } from '@/assets/constants/events'
 import getToHost from '@/common/transfer'
 import intl from 'react-intl-universal'
 import utils from '@/tools/utils'
@@ -35,43 +34,24 @@ if (window.location.origin.indexOf('localhost') > -1 || window.location.origin.i
 
 export default function Video() {
     const [step, setStep] = useState(config.switch.skipWaitingPage ? 'wait' : 'start') // start: 发起和重新发起 wait等待接听中 current 视频中 invite:客服邀请 enquiry: 评价
-    const [sound, setSound] = useState(!config.switch.visitorCameraOff) // 开关声音
-    const [face, setFace] = useState(!config.switch.visitorCameraOff) // 开关视频
-    const [compInfo] = useState({
-        name: config.tenantInfo.name,
-        avatar: config.tenantInfo.avatar,
-    })
     const [ localUser, setLocalUser ] = useState(null); // 本地用户音视频轨道保存
     const [ currentChooseUser, setCurrentChooseUser ] = useState(null); // 当前在正中央播放的用户
-
     const [callId, setCallId] = useState(null)
-    const [remoteUsers, setRemoteUsers] = useState([])
-    const [ticketInfo, setTicketIfo] = useState(null)
     const [idNameMap, setIdNameMap] = useState({})
-    const [agents, setAgents] = useState({})
-
     const [show, setShow] = useState(top ? true : false)
-    const [hideDefaultButton, setHideDefaultButton] = useState(hideDefault)
-    const [whiteboardUser, setWhiteboardUser] = useState(null);
-    const [whiteboardVisible, setWhiteboardVisible] = useState(false);
-    const [whiteboardRoomInfo, setWhiteboardRoomInfo] = useState(null);
-    let [ callingScreenSwitch, setCallingScreenSwitch ] = useState(false);
+    const [hideDefaultButton] = useState(hideDefault)
     const [enquiryTimer, setEnquiryTimer] = useState(null) // 评价
     const [enquiryData, setEnquiryData] = useState({})
-    
     const [chatVisible, setChatVisible] = useState(false) // 聊天
-    const [chatUnread, setChatUnread] = useState(null)
+    const [remoteUsers, setRemoteUsers] = useState([])
+    const [time, setTime] = useState(false) // 开始计时
 
-    const videoRef = useRef();
-    const stepRef = useRef()
     const waitPageRef = useRef()
-
-    
+    const currentPageRef = useRef()
 
     // 接受视频
     const recived = async ticketInfo => {
         if (!serviceAgora) {
-            setTicketIfo(ticketInfo)
 
             var cfgAgora = {
                 appid: ticketInfo.appId,
@@ -89,95 +69,40 @@ export default function Video() {
             })
             // 获取访客信息 关闭信息的时候要用 后续不掉用关闭接口可以去除
             const officialAccountList = await getOfficalAccounts()
-            if (officialAccountList.length >= 0) {
-                await serviceAgora.join(cfgAgora)
-                setTime(true) // 开始计时
-                setStep('current')
+            await serviceAgora.join(cfgAgora)
+            setTime(true) // 开始计时
+            setStep('current')
 
-                serviceAgora.localAudioTrack.setMuted(config.switch.visitorCameraOff)
-                serviceAgora.localVideoTrack.setMuted(config.switch.visitorCameraOff)
-                // config.switch.visitorCameraOff && serviceAgora.closeLocalTrack('video')
+            serviceAgora.localAudioTrack.setMuted(config.switch.visitorCameraOff)
+            serviceAgora.localVideoTrack.setMuted(config.switch.visitorCameraOff)
+            // config.switch.visitorCameraOff && serviceAgora.closeLocalTrack('video')
 
-                let { localAudioTrack, localVideoTrack } = serviceAgora
-                let localUser = {
-                    isLocal: true, 
-                    // audioTrack: localAudioTrack,
-                    videoTrack: localVideoTrack,
-                    // videoTrack: config.switch.visitorCameraOff ? null : localVideoTrack,
-                    uid: cfgAgora.uid
-                }
-
-                setLocalUser(localUser);
-                setCurrentChooseUser(localUser);
-            } else {
-                noVisitorClose()
+            let { localAudioTrack, localVideoTrack } = serviceAgora
+            let localUser = {
+                isLocal: true, 
+                // audioTrack: localAudioTrack,
+                videoTrack: localVideoTrack,
+                // videoTrack: config.switch.visitorCameraOff ? null : localVideoTrack,
+                uid: cfgAgora.uid
             }
+
+            setLocalUser(localUser);
+            setCurrentChooseUser(localUser);
         }
 
-        // setAgents(agentsOld => {
-        //     return Object.assign({}, agentsOld, {[ticketInfo.agentTicket.uid]: ticketInfo.agentTicket})
-        // })
         setIdNameMap(val => Object.assign({}, val, {[ticketInfo.agentTicket.uid]: ticketInfo.agentTicket.trueName}))
     }
 
-    // 接受白板
-    const receiveWhiteBoard = roomInfo => {
-        setWhiteboardRoomInfo(roomInfo)
-        setWhiteboardVisible(true)
-    }
-
-    /*打开白版 */
-    const showWhiteboard = () => {
-        let user = {
-            isWhiteboard: true,
-            uid: String(Math.ceil(Math.random() * 1000))
-        };
-        setWhiteboardUser(user)
-        setCurrentChooseUser(user);
-    }
-
-    // 无访客信息直接挂断，否则关闭需要的信息获取不到
-    const noVisitorClose = () => {
-        setStep('start')
-        setDesc(intl.get('reStartVideo'))
-        setTip(config.style.endingPrompt)
+    const handleClose = (e) => {
+        waitPageRef.current.handleClose(e)
+        currentPageRef.current.handleClose()
+        setTime(false)
         setCallId(null)
+        setChatVisible(false)
 
         // 本地离开
         serviceAgora && serviceAgora.leave();
         serviceAgora = null
-    }
-
-    const handleClose = () => {
-        waitPageRef.current.handleClose()
-    }    
-
-    // 声音
-    function handleSound() {
-        setSound(!sound)
-        serviceAgora.localAudioTrack.setMuted(sound); // false 打开 true 关闭
-    }
-
-    const handleFace = async () => {
-        if (callingScreenSwitch) return onDesktopControl();
-
-        // if (serviceAgora.localVideoTrack) {
-        //     serviceAgora.closeLocalTrack('video')
-        //     setLocalUser(user => {
-        //         user.videoTrack = null
-        //         return user
-        //     })
-        // } else {
-        //     const localVideoTrack = await serviceAgora.createLocalVideoTrack()
-        //     serviceAgora.publish(localVideoTrack)
-        //     setLocalUser(user => {
-        //         user.videoTrack = localVideoTrack
-        //         return user
-        //     })
-        //     currentChooseUser.uid === localUser.uid && localVideoTrack.play(videoRef.current)
-        // }
-        serviceAgora.localVideoTrack.setMuted(face); // false 打开 true 关闭
-        setFace(!face)
     }
 
     const onRemoteUserChange = useCallback((remoteUsers) => {
@@ -197,39 +122,6 @@ export default function Video() {
             }
         }
     }, [currentChooseUser, remoteUsers, step])
-
-    const onUserJoined = useCallback((user) => {
-        !!whiteboardRoomInfo && sendWhiteboardInvitation();
-    }, [whiteboardRoomInfo]);
-
-    /* 发送白板邀请 */
-    const sendWhiteboardInvitation = useCallback(() => {
-        ws.cancelVideo(callId, {
-            ext: {
-                type: "agorartcmedia/video",
-                targetSystem: 'kefurtc',
-                msgtype: {
-                    whiteboardInvitaion:{
-                        callId: callId
-                    }
-                },
-            },
-        });
-    }, [callId])
-
-    /* 通话中打开白板 */
-    const bindWhiteboardClick = useCallback(_.debounce(async () => {
-        if (whiteboardVisible) {
-            return setWhiteboardVisible(false); // 关闭白版
-        } else {
-            sendWhiteboardInvitation(); 
-        }
-    }, 1000), [whiteboardVisible, callId]);
-
-    // 关闭白板
-    const handleWhiteOk = () => {
-        setWhiteboardVisible(false)
-    }
 
     function onErrorNotify(errorCode) {
         let errorCodeMap = {
@@ -256,56 +148,12 @@ export default function Video() {
         setShow(false)
     }
 
-    // 坐席回呼
-    const agentCallback = callbackInfo => {
-        setStep('invite')
-        setTip('客服正在邀请您进行视频通话')
-    }
-
-    
-
-    
-
     // 默认联系客服
     const handleConnect = () => {
         getToHost.send({event: 'showChat'})
         setShow(true)
     }
-
-    /* 桌面分享绑定事件 */
-    const onDesktopControl = _.debounce(function() {
-        if (whiteboardVisible) return;
-        let _hxAgoraVideo = serviceAgora
-
-        if (callingScreenSwitch) {
-            setFace(true);
-            setCallingScreenSwitch(false);
-            _hxAgoraVideo.client.unpublish(_hxAgoraVideo.localScreenTrack);
-            _hxAgoraVideo.localScreenTrack?.off('track-ended')
-            _hxAgoraVideo.closeLocalTrack('screen'); //关闭屏幕分享
-
-            _hxAgoraVideo.publish(_hxAgoraVideo.localVideoTrack);
-            _hxAgoraVideo.localVideoTrack.setMuted(false);
-            let user = { ...localUser, videoTrack:  _hxAgoraVideo.localVideoTrack };
-            setLocalUser(user);
-            currentChooseUser.isLocal && setCurrentChooseUser(user);
-        } else {
-            _hxAgoraVideo.createScreenVideoTrack()
-            .then((localScreenTrack) => {
-                if (!localScreenTrack) return;
-                setCallingScreenSwitch(true);
-                setFace(false);
-
-                _hxAgoraVideo.client.unpublish(_hxAgoraVideo.localVideoTrack);
-                _hxAgoraVideo.localVideoTrack.stop();
-                _hxAgoraVideo.publish(localScreenTrack);
-                let user = { ...localUser, videoTrack:  localScreenTrack };
-                setLocalUser(user);
-                currentChooseUser.isLocal && setCurrentChooseUser(user);
-            })
-        }
-    }, 1000);
-
+    
     // 评价
     const reciveEnquiry = useCallback(enquiry => {
         if (step === 'current') {
@@ -319,11 +167,9 @@ export default function Video() {
     const handleEnquiry = () => {
         setEnquiryTimer(setTimeout(() => {
             setStep('start')
-            setDesc(intl.get('reStartVideo'))
+            waitPageRef.current?.setDesc(intl.get('reStartVideo'))
         }, 3000))
     }
-
-    
 
     // 聊天
     const handleChatClose = () => {
@@ -334,16 +180,6 @@ export default function Video() {
         return utils.isMobile ? <div style={{backgroundColor: '#000'}}><Chat close={handleChatClose} /></div> : <Chat close={handleChatClose} />
     }
 
-    
-
-    useEffect(() => {
-        if (!serviceAgora?.localScreenTrack) return;
-
-        /* 用户通过浏览器提供的关系屏幕共享按钮 */
-        serviceAgora.localScreenTrack.removeAllListeners('track-ended')
-        serviceAgora.localScreenTrack.on('track-ended', onDesktopControl)
-    }, [callingScreenSwitch]);
-
     useEffect(() => {
         if (!serviceAgora?.client) return;
     
@@ -352,57 +188,10 @@ export default function Video() {
     }, [onUserLeft]);
 
     useEffect(() => {
-        if (!serviceAgora?.client) return;
-
-        serviceAgora.client.on('user-joined', onUserJoined);
-        return () => void serviceAgora?.client?.off('user-joined', onUserJoined);
-    }, [onUserJoined]);
-
-    useEffect(() => {
-        // 客服在中心
-        if (remoteUsers.length) {
-            var agentAll = remoteUsers.filter(({uid}) => uid !== localUser.uid)
-            agentAll.length && setCurrentChooseUser(agentAll[0])
-        }
-
-        if (remoteUsers.length && !currentChooseUser.isLocal) {
-            currentChooseUser?.videoTrack?.play(videoRef.current, {fit: "contain"});
-            currentChooseUser?.audioTrack?.play();
-        }
-    }, [remoteUsers])
-
-    useEffect(() => {
-        if (currentChooseUser?.isWhiteboard && whiteboardVisible) {
-            setWhiteboardRoomInfo((val) => ({ ...val, domNode: videoRef.current }));
-        }
-
-        if (!videoRef.current) return;
-    
-        currentChooseUser?.audioTrack?.play();
-        currentChooseUser?.videoTrack?.play(videoRef.current, !currentChooseUser.isLocal ? {fit: "contain"} : null); //本地播放视频
-    }, [currentChooseUser, whiteboardVisible])
-
-    useEffect(() => {
-        if (step !== 'current') return;
-
-        if (whiteboardVisible) { //打开
-            showWhiteboard();
-        } else { //关闭
-            setWhiteboardRoomInfo(null);
-            setWhiteboardUser(null);
-            if (currentChooseUser?.isWhiteboard) {
-                setCurrentChooseUser(remoteUsers[0] || localUser);
-            }
-        }
-    }, [whiteboardVisible, step])
-
-    useEffect(() => {
         event.on(SYSTEM_VIDEO_TICKET_RECEIVED, recived) // 监听接受
         event.on(SYSTEM_VIDEO_ARGO_END, handleClose) // 取消和挂断
         event.on(SYSTEM_VIDEO_ARGO_REJECT, handleClose) // 坐席拒接
-        event.on(SYSTEM_VIDEO_CALLBACK, agentCallback) // 回呼
         event.on(SYSTEM_VIDEO_CALLBACK_TICKET, recived) // 坐席回呼
-        event.on(SYSTEM_WHITE_BOARD_RECEIVED, receiveWhiteBoard) // 白板
         event.on(SYSTEM_AGENT_CANCALCALLBACK, handleClose)
         event.on(SYSTEM_ENQUIRY_INVITE, reciveEnquiry) // 邀请评价
 
@@ -410,27 +199,17 @@ export default function Video() {
             event.off(SYSTEM_VIDEO_TICKET_RECEIVED, recived) // 监听接受
             event.off(SYSTEM_VIDEO_ARGO_END, handleClose) // 取消和挂断
             event.off(SYSTEM_VIDEO_ARGO_REJECT, handleClose) // 坐席拒接
-            event.off(SYSTEM_VIDEO_CALLBACK, agentCallback) // 回呼
             event.off(SYSTEM_VIDEO_CALLBACK_TICKET, recived)
-            event.off(SYSTEM_WHITE_BOARD_RECEIVED, receiveWhiteBoard) // 白板
             event.off(SYSTEM_AGENT_CANCALCALLBACK, handleClose)
             event.off(SYSTEM_ENQUIRY_INVITE, reciveEnquiry) // 邀请评价
         }
     }, [step])
 
     useEffect(() => {
-        // 直接发起视频通话
-        if (config.switch.skipWaitingPage) {
-            handleStart()
-        }
-
         return () => {
             clearTimeout(enquiryTimer)
         }
     }, [])
-
-    let videoLinking = step === 'current' && !!remoteUsers.length; //通话中 有其他人加入
-    var isDisabledWhiteboard = !videoLinking || callingScreenSwitch || whiteboardVisible;
 
     // 聊天位置
     var chatPos = 'chat_mask' // 浮层
@@ -443,18 +222,37 @@ export default function Video() {
                 {!top && step !== 'enquiry' && <span onClick={handleMini} className={step === 'current' ? 'icon-mini' : 'icon-close'}></span>}
                 <CurrentPage
                     step={step}
+                    ref={currentPageRef}
+                    config={config}
+                    ws={ws}
+                    serviceAgora={serviceAgora}
+                    setStep={setStep}
+                    callId={callId}
+                    setCurrentChooseUser={setCurrentChooseUser}
+                    remoteUsers={remoteUsers}
+                    currentChooseUser={currentChooseUser}
+                    time={time}
+                    chatVisible={chatVisible}
+                    localUser={localUser}
+                    idNameMap={idNameMap}
+                    setLocalUser={setLocalUser}
+                    setChatVisible={setChatVisible}
+                    getChat={getChat}
+                    chatPos={chatPos}
+                    handleCloseVideo={handleClose}
+                    top={top}
                 />
                 {/* 等待页面 */}
                 <WaitPage
                     ref={waitPageRef}
                     step={step}
-                    compInfo={compInfo}
                     config={config}
                     ws={ws}
                     setStep={setStep}
                     params={params}
                     serviceAgora={serviceAgora}
                     callId={callId}
+                    handleCloseVideo={handleClose}
                     />
                 {step === 'enquiry' && <Enquiry handleSendWs={handleEnquiry} {...enquiryData} />}
                 {chatVisible && top && !utils.isMobile && getChat()}

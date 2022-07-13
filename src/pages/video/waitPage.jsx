@@ -4,7 +4,7 @@ import logo from '@/assets/img/qiye.png'
 import intl from 'react-intl-universal'
 import event from '@/tools/event'
 import { WaitWrapper, WaitTitle, WaitAgent, WaitAgentLogo, WaitAgentDesc, WaitTip, WaitOpera, InviteOpera} from './style'
-import { SYSTEM_RTCSESSION_INFO } from '@/assets/constants/events'
+import { SYSTEM_RTCSESSION_INFO, SYSTEM_VIDEO_CALLBACK } from '@/assets/constants/events'
 import { visitorClose, visitorWaiting } from '@/assets/http/user'
 
 function AnswerButton({handleClick, desc, init = true}) {
@@ -16,13 +16,17 @@ function AnswerButton({handleClick, desc, init = true}) {
     </React.Fragment>
 }
 
-export default React.forwardRef(function({step, compInfo, config, ws, setStep, params, callId, serviceAgora}, ref) {
+export default React.forwardRef(function({step, config, ws, setStep, params, callId, serviceAgora, handleCloseVideo }, ref) {
     const [desc, setDesc] = useState(intl.get('startVideo'))
     const [tip, setTip] = useState(config.style.waitingPrompt)
     const [timer, setTimer] = useState(null)
     const [sessionInfo, setSessionInfo] = useState({})
     const [waitTimer, setWaitTimer] = useState(null) // 排队
     const [waitTimerFlag, setWaitTimerFlag] = useState('true')
+    const [compInfo] = useState({
+        name: config.tenantInfo.name,
+        avatar: config.tenantInfo.avatar,
+    })
 
     const stepRef = useRef()
 
@@ -52,7 +56,7 @@ export default React.forwardRef(function({step, compInfo, config, ws, setStep, p
                 },
             },
         })
-        handleClose()
+        handleCloseVideo()
     }
 
     // 发起、重新发起
@@ -111,33 +115,21 @@ export default React.forwardRef(function({step, compInfo, config, ws, setStep, p
                     },
                 })
             } else if (step === 'current') {
-                visitorClose(sessionInfo.rtcSessionId)
+                visitorClose(sessionInfo.rtcSessionId, sessionInfo.visitorUserId)
             }
         }
 
         setStep('start')
         setDesc(intl.get('reStartVideo'))
         setTip(config.style.endingPrompt)
-        // setCallId(null)
-        // setTime(false)
-        // setTicketIfo(null)
-        // setSound(!config.switch.visitorCameraOff)
-        // setFace(!config.switch.visitorCameraOff)
-        // setSessionInfo({})
-        // /* 重置白板信息 */
-        // setWhiteboardUser(null);
-        // setWhiteboardRoomInfo(null);
-        // setWhiteboardVisible(false);
-        // setChatVisible(false)
-
-        // 本地离开
-        serviceAgora && serviceAgora.leave();
-        serviceAgora = null
-    }, [sessionInfo, callId, step])
+        setSessionInfo({})
+    }, [sessionInfo, step, callId])
 
     useImperativeHandle(ref, () => ({
-        handleClose
-    }), [])
+        handleClose,
+        setDesc,
+        setTip
+    }), [step, callId])
 
     // 会话信息&&排队
     const receiveRtcSession = sInfo => {
@@ -157,6 +149,12 @@ export default React.forwardRef(function({step, compInfo, config, ws, setStep, p
         })
     }
 
+    // 坐席回呼
+    const agentCallback = callbackInfo => {
+        setStep('invite')
+        setTip('客服正在邀请您进行视频通话')
+    }
+
     useEffect(() => {
         if (waitTimerFlag !== 'true') {
             clearInterval(waitTimer)
@@ -166,9 +164,11 @@ export default React.forwardRef(function({step, compInfo, config, ws, setStep, p
 
     useEffect(() => {
         event.on(SYSTEM_RTCSESSION_INFO, receiveRtcSession) // 会话信息，开始排队
+        event.on(SYSTEM_VIDEO_CALLBACK, agentCallback) // 回呼
 
         return () => {
             event.off(SYSTEM_RTCSESSION_INFO, receiveRtcSession)
+            event.off(SYSTEM_VIDEO_CALLBACK, agentCallback) // 回呼
         }
     }, [step])
 
@@ -220,7 +220,7 @@ export default React.forwardRef(function({step, compInfo, config, ws, setStep, p
             </InviteOpera>
         ) : (
             <WaitOpera role={step} ref={stepRef}>
-                {step === 'start' ? <AnswerButton handleClick={handleStart} desc={desc} /> : <AnswerButton handleClick={handleClose} desc={desc} init={false} />}
+                {step === 'start' ? <AnswerButton handleClick={handleStart} desc={desc} /> : <AnswerButton handleClick={handleCloseVideo} desc={desc} init={false} />}
             </WaitOpera>
         )}
     </WaitWrapper>
