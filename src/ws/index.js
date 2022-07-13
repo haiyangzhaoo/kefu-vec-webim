@@ -304,6 +304,7 @@ function _handleMessage(msg, options){
 		event.emit(SYSTEM_VIDEO_TICKET_RECEIVED, videoTicket);
 		break;
 	case 'sendVisitorCallback':
+		console.log(999999)
 		event.emit(SYSTEM_VIDEO_CALLBACK, sendVisitorCallback);
 		break;
 	case 'videoCallbackTicket':
