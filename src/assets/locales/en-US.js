@@ -43,4 +43,5 @@ export default {
     reserve_code_placeholder: 'Verify Code',
     reserve_code: 'Send verify code',
     reserve_recode: 'Resend',
+    logout_fail: 'Logout Fail'
 }

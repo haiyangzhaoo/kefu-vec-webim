@@ -9,14 +9,21 @@ export const Wrapper = styled.div`
 `
 
 export const Header = styled.header`
-    line-height: 50px;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     border-bottom: 1px solid ${s.border};
     > span {
         flex-basis: 25%;
-        text-align: center;
+        min-height: 50px;
+        padding: 0 5px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: break-spaces;
+        word-break: break-all;
+        overflow-wrap: anywhere;
         &.selected {
             color: ${s.theme};
         }

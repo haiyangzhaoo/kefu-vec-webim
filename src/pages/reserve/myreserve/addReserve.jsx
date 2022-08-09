@@ -18,8 +18,10 @@ export default function AddReserve(props) {
             subscribeTimePeriod: `${props.date} ${props.week} ${props.time}`,
             visitorName: name,
             contact: phone,
-            resourceDetailId: props.business.id,
-            token: visitorInfo.token
+            resourceDetailId: props.rest.resourceDetailId,
+            token: visitorInfo.token,
+            noticeBeforeMinutes: 10,
+            businessId: props.business.id
         })
         if (status === 'OK') {
             Toast.show({
@@ -27,9 +29,15 @@ export default function AddReserve(props) {
                 position: 'top',
             })
             props.setAddVisible && props.setAddVisible(false)
+            props.handleRestList && props.handleRestList()
     
             setName('')
             setPhone('')
+        } else {
+            Toast.show({
+                icon: 'fail',
+                content: intl.get('reserve_add_fail'),
+            })
         }
     }
  

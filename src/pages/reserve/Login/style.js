@@ -43,7 +43,7 @@ export const VerCodeWrapper = styled.div`
     margin: 20px 0;
     > div {
         &:last-child {
-            flex-basis: 200px;
+            flex-basis: 210px;
             text-align: center;
             font-size: 16px;
             margin-left: 10px;

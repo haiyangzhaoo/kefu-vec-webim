@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Wrapper, Header } from "./style"
 import intl from 'react-intl-universal'
-import { Tabs } from 'antd-mobile'
+import { Tabs, Toast } from 'antd-mobile'
 import Records from "./records"
 import MyReserve from "./myreserve"
 import Login from './Login'
@@ -35,6 +35,11 @@ export default function Reserve() {
             setVisitorInfoState(null)
 
             setSelectTab('reserve')
+        } else {
+            Toast.show({
+                icon: 'fail',
+                content: intl.get('logout_fail')
+            })
         }
     }
 

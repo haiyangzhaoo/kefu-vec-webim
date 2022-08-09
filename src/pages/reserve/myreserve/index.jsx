@@ -43,7 +43,7 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
     }
 
     const getDays = async d => {
-        const { entities } = await httpSevenDays(d)
+        const { entities } = await httpSevenDays(tenantId, d)
         setSevenDays(entities)
     }
 
@@ -51,7 +51,7 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
     const getBusinessListAndDays = async () => {
         const [businessListData, httpSevenDaysData] = await Promise.all([
             businessList(tenantId),
-            httpSevenDays(date)
+            httpSevenDays(tenantId, date)
         ])
         
         setBasicColumns(businessListData.entities)
@@ -61,9 +61,15 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
     // 剩余资源
     const getRestBusiness = async () => {
         if (business && date) {
-            const { entities } = await restBusiness(tenantId, business.id, date)
-            entities.length && setRestList(entities)
+            const { status, entities } = await restBusiness(tenantId, business.id, date)
+            status === 'OK' && setRestList(entities)
+            setAddVisible(false)
         }
+    }
+    
+    // 处理剩余资源列表
+    const handleRestList = () => {
+        setRestList(oList => oList.map(t => t.surplusId === rest.surplusId ? Object.assign({}, t, {surplusReservationNum: t.surplusReservationNum - 1}) : t))
     }
 
     useEffect(() => {
@@ -99,7 +105,7 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
                 onClick={handleNextDays}></span>
         </SevenDays>
         <Container>
-            {restList.map(item => (
+            {restList.length ? restList.map(item => (
                 <ReserveRest key={item.surplusId}>
                     <ReserveRestTip>
                         {item.timePeriod ? <i>{item.timePeriod}</i> : ''}
@@ -109,10 +115,11 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
                     </ReserveRestTip>
                     {item.surplusReservationNum > 0 ? <ReserveRestButton onClick={() => handleReserve(item)}>预约</ReserveRestButton> : <ReserveFull>约满</ReserveFull>}
                 </ReserveRest>
-            ))}
+            )) : null}
             {addVisible && <AddReserve
                 tenantId={tenantId}
                 business={business}
+                rest={rest}
                 date={date}
                 week={(() => {
                     let p = sevenDays.find(({subscribeDate}) => subscribeDate === date)
@@ -120,6 +127,7 @@ export default function MyReserve({isLogin, setShowLogin, tenantId}) {
                 })()}
                 time={rest.timePeriod || ''}
                 setAddVisible={setAddVisible}
+                handleRestList={handleRestList}
             />}
         </Container>
     </Wrapper>
