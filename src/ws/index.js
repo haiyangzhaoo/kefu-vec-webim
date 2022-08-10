@@ -17,6 +17,12 @@ var handleConfig = commonConfig.handleConfig;
 var receiveMsgDict = new Dict();
 var conn
 var config = commonConfig.getConfig()
+const urlParams = (() => {
+	let searchOps = queryString.parse(location.search)
+	let hashOps = queryString.parse(location.hash.substring(location.hash.indexOf('?')))
+	
+	return Object.assign({}, searchOps, hashOps)
+})()
 
 var _open = tools.retryThrottle(function(){
 	var op = {
@@ -537,9 +543,14 @@ function _initConnection(){
 
 // 初始化配置
 commonConfig.setConfig({
-	configId: queryString.parse(location.search).configId || ''
+	configId: urlParams.configId || ''
 })
 async function initConfig() {
+	if (!commonConfig.getConfig().configId) {
+		console.log('no configId, init end', Date.now())
+		return Promise.resolve(null)
+	}
+
 	const {status, entity} = await getConfig(commonConfig.getConfig().configId)
 	if (status === 'OK') {
 		entity.configJson = JSON.parse(entity.configJson)
@@ -549,7 +560,7 @@ async function initConfig() {
 
 		await initRelevanceList(entity.tenantId);
 
-		console.log('config end')
+		console.log('config end', Date.now())
 	}
 }
 
